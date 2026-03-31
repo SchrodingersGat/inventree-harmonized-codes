@@ -40,7 +40,7 @@ export default defineConfig({
     jsx: 'preserve',
   },
   build: {
-    // minify: false,
+    minify: true,
     target: 'esnext',
     cssCodeSplit: false,
     manifest: true,
@@ -49,15 +49,21 @@ export default defineConfig({
       preserveEntrySignatures: "exports-only",
       input: [
         './src/Panel.tsx',
-        
-        
       ],
-      output: {
-        dir: '../harmonized_system_codes/static',
-        entryFileNames: '[name].js',
-        assetFileNames: 'assets/[name].[ext]',
-        globals: externalLibs,
-      },
+      output: [
+        {
+          dir: '../harmonized_system_codes/static',
+          entryFileNames: '[name].js',
+          assetFileNames: 'assets/[name].[ext]',
+          globals: externalLibs,
+        },
+        {
+          dir: '../harmonized_system_codes/static',
+          entryFileNames: '[name]-[hash].min.js',
+          assetFileNames: 'assets/[name].[ext]',
+          globals: externalLibs,
+        }
+      ],
       external: externalKeys,
     }
   },
