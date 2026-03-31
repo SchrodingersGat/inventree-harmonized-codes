@@ -7,6 +7,7 @@ This file is where you can define any custom database models.
 """
 
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from part.models import PartCategory
@@ -22,6 +23,30 @@ class HarmonizedSystemCode(models.Model):
         app_label = "harmonized_system_codes"
         verbose_name = _("Harmonized System Code")
         verbose_name_plural = _("Harmonized System Codes")
+
+    def save(self, *args, **kwargs):
+        """Custom save method to enforce any constraints or perform actions before saving."""
+        # Example: Ensure code is uppercase
+        self.clean()
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        """Custom validation logic for the model."""
+
+        # Ensure the code is unique for the given category and customer
+        if (
+            HarmonizedSystemCode.objects.filter(
+                category=self.category,
+                customer=self.customer,
+            )
+            .exclude(pk=self.pk)
+            .exists()
+        ):
+            raise ValidationError(
+                _(
+                    "A Harmonized System Code with this category, and customer already exists."
+                )
+            )
 
     code = models.CharField(
         max_length=20,
