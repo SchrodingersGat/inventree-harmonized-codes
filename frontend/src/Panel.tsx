@@ -7,6 +7,7 @@ import {
   type InvenTreePluginContext,
   RowActions,
   RowDeleteAction,
+  RowDuplicateAction,
   RowEditAction,
   SearchInput
 } from '@inventreedb/ui';
@@ -62,6 +63,9 @@ function HarmonizedSystemCodesPanel({
   // Record which is selected in the table
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
+  // Initial form data for creating a new code
+  const [initialCodeData, setInitialCodeData] = useState<any>({});
+
   // Form fields for the codes
   const codeFields: ApiFormFieldSet = useMemo(() => {
     return {
@@ -84,6 +88,7 @@ function HarmonizedSystemCodesPanel({
     url: apiUrl(CODE_URL),
     title: t`Create Harmonized Code`,
     fields: codeFields,
+    initialData: initialCodeData,
     onFormSuccess: codesQuery.refetch
   });
 
@@ -109,6 +114,12 @@ function HarmonizedSystemCodesPanel({
         onClick: () => {
           setSelectedRecord(record);
           editCodeForm?.open();
+        }
+      }),
+      RowDuplicateAction({
+        onClick: () => {
+          setInitialCodeData(record);
+          createCodeForm?.open();
         }
       }),
       RowDeleteAction({
@@ -174,7 +185,10 @@ function HarmonizedSystemCodesPanel({
           <Group gap='xs'>
             <AddItemButton
               tooltip={t`Add new harmonized code`}
-              onClick={createCodeForm.open}
+              onClick={() => {
+                setInitialCodeData({});
+                createCodeForm.open();
+              }}
             />
           </Group>
           <Group gap='xs'>
