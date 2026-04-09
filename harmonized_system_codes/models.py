@@ -79,6 +79,14 @@ class HarmonizedSystemCode(models.Model):
         related_name="hs_codes",
     )
 
+    country = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name=_("Country"),
+        help_text=_("Country associated with this HS code"),
+    )
+
     notes = models.CharField(
         max_length=500,
         blank=True,
