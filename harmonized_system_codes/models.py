@@ -126,3 +126,9 @@ class HarmonizedSystemCode(models.Model):
         verbose_name=_("Notes"),
         help_text=_("Additional notes about the HS code"),
     )
+
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Whether this HS code is active"),
+    )
