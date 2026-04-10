@@ -70,16 +70,30 @@ class HarmonizedSystemCode(models.Model):
                 _("Harmonized System Codes plugin not found in registry.")
             )
 
-        if country_list := hc_plugin.get_country_list():
-            if not country_list.entries.filter(
-                active=True, value=self.country
-            ).exists():
-                name = country_list.name
-                raise ValidationError({
-                    "country": _(
-                        f"Country code does not exist in the {name} selection list"
-                    )
-                })
+        country_list = hc_plugin.get_country_list()
+
+        # No country list - no further validation needed
+        if not country_list:
+            return
+
+        # Exact match - no further validation needed
+        if country_list.entries.filter(active=True, value=self.country).exists():
+            return
+
+        # Try case insensitive match - if this works, update the country code to match the selection list
+        inexact_matches = country_list.entries.filter(
+            active=True, value__iexact=self.country
+        )
+
+        if inexact_matches.count() == 1:
+            self.country = inexact_matches.first().value
+            return
+
+        # No match - raise validation error with the name of the selection list
+        name = country_list.name
+        raise ValidationError({
+            "country": _(f"Country code does not exist in the {name} selection list")
+        })
 
     code = models.CharField(
         max_length=20,
