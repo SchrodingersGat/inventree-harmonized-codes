@@ -27,6 +27,7 @@ class HarmonizedSystemCodeSerializer(InvenTreeModelSerializer):
             "customer",
             "description",
             "notes",
+            "active",
             # Detail serializers
             "category_detail",
             "customer_detail",

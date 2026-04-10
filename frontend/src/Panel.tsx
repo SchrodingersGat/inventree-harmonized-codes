@@ -9,7 +9,8 @@ import {
   RowDeleteAction,
   RowDuplicateAction,
   RowEditAction,
-  SearchInput
+  SearchInput,
+  YesNoButton
 } from '@inventreedb/ui';
 import { t } from '@lingui/core/macro';
 import { ActionIcon, Alert, Group, Stack, Text, Tooltip } from '@mantine/core';
@@ -80,7 +81,8 @@ function HarmonizedSystemCodesPanel({
         value: companyId || undefined,
         disabled: !!companyId
       },
-      notes: {}
+      notes: {},
+      active: {}
     };
   }, [companyId]);
 
@@ -163,6 +165,10 @@ function HarmonizedSystemCodesPanel({
         render: (record: any, index: number) => (
           <RowActions actions={rowActions(record)} index={index} />
         )
+      },
+      {
+        accessor: 'active',
+        render: (record: any) => <YesNoButton value={record.active} />
       }
     ];
   }, []);
