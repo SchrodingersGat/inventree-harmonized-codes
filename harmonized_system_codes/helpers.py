@@ -33,7 +33,7 @@ def get_harmonized_code(
     # Work up the category tree to find a matching code
     categories = category.get_ancestors(include_self=True)
 
-    hs_codes = HarmonizedSystemCode.objects.filter(category__in=categories)
+    hs_codes = HarmonizedSystemCode.objects.filter(active=True, category__in=categories)
 
     # Order by category level (deepest level first)
     hs_codes = hs_codes.order_by("-category__level")
