@@ -72,6 +72,7 @@ function HarmonizedSystemCodesPanel({
       code: {},
       description: {},
       category: {},
+      country: {},
       customer: {
         filters: {
           is_customer: true
@@ -142,6 +143,9 @@ function HarmonizedSystemCodesPanel({
       {
         accessor: 'category',
         render: (record: any) => record.category_detail?.name ?? '-'
+      },
+      {
+        accessor: 'country'
       },
       {
         accessor: 'customer',

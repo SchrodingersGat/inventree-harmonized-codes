@@ -26,7 +26,7 @@ class HarmonizedSystemCode(models.Model):
 
     def save(self, *args, **kwargs):
         """Custom save method to enforce any constraints or perform actions before saving."""
-        # Example: Ensure code is uppercase
+
         self.clean()
         super().save(*args, **kwargs)
 
@@ -47,6 +47,39 @@ class HarmonizedSystemCode(models.Model):
                     "A Harmonized System Code with this category, and customer already exists."
                 )
             )
+
+        self.validate_country_code()
+
+    def validate_country_code(self):
+        """Run validation on the country field.
+
+        If a SelectionList is provided for the country field,
+        ensure the provided country value is valid.
+        """
+
+        from plugin.registry import registry
+        from . import PLUGIN_SLUG
+
+        if not self.country:
+            return
+
+        hc_plugin = registry.get_plugin(PLUGIN_SLUG)
+
+        if not hc_plugin:
+            raise ValidationError(
+                _("Harmonized System Codes plugin not found in registry.")
+            )
+
+        if country_list := hc_plugin.get_country_list():
+            if not country_list.entries.filter(
+                active=True, value=self.country
+            ).exists():
+                name = country_list.name
+                raise ValidationError({
+                    "country": _(
+                        f"Country code does not exist in the {name} selection list"
+                    )
+                })
 
     code = models.CharField(
         max_length=20,
