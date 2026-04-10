@@ -5,6 +5,7 @@ import {
   apiUrl,
   checkPluginVersion,
   type InvenTreePluginContext,
+  ModelType,
   RowActions,
   RowDeleteAction,
   RowDuplicateAction,
@@ -31,7 +32,15 @@ function HarmonizedSystemCodesPanel({
   context: InvenTreePluginContext;
 }) {
   const companyId: string | number | null = useMemo(() => {
-    if (context.model === 'company' && !!context.id) {
+    if (context.model === ModelType.company && !!context.id) {
+      return context.id;
+    } else {
+      return null;
+    }
+  }, [context.model, context.id]);
+
+  const categoryId: string | number | null = useMemo(() => {
+    if (context.model === ModelType.partcategory && !!context.id) {
       return context.id;
     } else {
       return null;
@@ -44,12 +53,13 @@ function HarmonizedSystemCodesPanel({
 
   const codesQuery = useQuery(
     {
-      queryKey: ['hsCodes', searchTerm, companyId],
+      queryKey: ['hsCodes', searchTerm, categoryId, companyId],
       queryFn: async () => {
         return (
           context.api
             ?.get(CODE_URL, {
               params: {
+                in_category: categoryId || undefined,
                 customer: companyId || undefined,
                 search: searchTerm
               }
@@ -72,19 +82,20 @@ function HarmonizedSystemCodesPanel({
     return {
       code: {},
       description: {},
-      category: {},
+      category: {
+        value: categoryId || undefined
+      },
       country: {},
       customer: {
         filters: {
           is_customer: true
         },
-        value: companyId || undefined,
-        disabled: !!companyId
+        value: companyId || undefined
       },
       notes: {},
       active: {}
     };
-  }, [companyId]);
+  }, [categoryId, companyId]);
 
   // Form to create a new HS code
   const createCodeForm = context.forms.create({

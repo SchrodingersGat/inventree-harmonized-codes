@@ -139,6 +139,10 @@ class HarmonizedSystemCodes(
             except (Company.DoesNotExist, ValueError):
                 return False
 
+        # Display for part categories
+        if target_model == "partcategory" and target_id:
+            return True
+
         # Default: do not display
         return False
 
@@ -159,7 +163,10 @@ class HarmonizedSystemCodes(
             except Group.DoesNotExist:
                 user_valid = False
 
-        if user_valid and self.display_codes_panel(request, context, **kwargs):
+        if not user_valid:
+            return []
+
+        if self.display_codes_panel(request, context, **kwargs):
             panels.append({
                 "key": "harmonized-system-codes-panel",
                 "title": "Harmonized Codes",
