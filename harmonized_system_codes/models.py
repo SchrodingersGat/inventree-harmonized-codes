@@ -26,7 +26,7 @@ class HarmonizedSystemCode(models.Model):
 
     def save(self, *args, **kwargs):
         """Custom save method to enforce any constraints or perform actions before saving."""
-        # Example: Ensure code is uppercase
+
         self.clean()
         super().save(*args, **kwargs)
 
@@ -47,6 +47,39 @@ class HarmonizedSystemCode(models.Model):
                     "A Harmonized System Code with this category, and customer already exists."
                 )
             )
+
+        self.validate_country_code()
+
+    def validate_country_code(self):
+        """Run validation on the country field.
+
+        If a SelectionList is provided for the country field,
+        ensure the provided country value is valid.
+        """
+
+        from plugin.registry import registry
+        from . import PLUGIN_SLUG
+
+        if not self.country:
+            return
+
+        hc_plugin = registry.get_plugin(PLUGIN_SLUG)
+
+        if not hc_plugin:
+            raise ValidationError(
+                _("Harmonized System Codes plugin not found in registry.")
+            )
+
+        if country_list := hc_plugin.get_country_list():
+            if not country_list.entries.filter(
+                active=True, value=self.country
+            ).exists():
+                name = country_list.name
+                raise ValidationError({
+                    "country": _(
+                        f"Country code does not exist in the {name} selection list"
+                    )
+                })
 
     code = models.CharField(
         max_length=20,
@@ -79,9 +112,23 @@ class HarmonizedSystemCode(models.Model):
         related_name="hs_codes",
     )
 
+    country = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name=_("Country"),
+        help_text=_("Country associated with this HS code"),
+    )
+
     notes = models.CharField(
         max_length=500,
         blank=True,
         verbose_name=_("Notes"),
         help_text=_("Additional notes about the HS code"),
+    )
+
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Whether this HS code is active"),
     )

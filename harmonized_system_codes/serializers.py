@@ -22,12 +22,15 @@ class HarmonizedSystemCodeSerializer(InvenTreeModelSerializer):
         fields = [
             "pk",
             "code",
-            "description",
             "category",
-            "category_detail",
+            "country",
             "customer",
-            "customer_detail",
+            "description",
             "notes",
+            "active",
+            # Detail serializers
+            "category_detail",
+            "customer_detail",
         ]
 
     category_detail = CategorySerializer(source="category", many=False, read_only=True)

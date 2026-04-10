@@ -13,7 +13,7 @@ from plugin.mixins import (
     UserInterfaceMixin,
 )
 
-from . import PLUGIN_VERSION
+from . import PLUGIN_SLUG, PLUGIN_VERSION
 
 
 class HarmonizedSystemCodes(
@@ -30,8 +30,8 @@ class HarmonizedSystemCodes(
     # Plugin metadata
     TITLE = "Harmonized System Codes"
     NAME = "HarmonizedSystemCodes"
-    SLUG = "harmonized-system-codes"
     DESCRIPTION = "Support harmonized system codes against sales orders"
+    SLUG = PLUGIN_SLUG
     VERSION = PLUGIN_VERSION
 
     # Additional project information
@@ -51,8 +51,29 @@ class HarmonizedSystemCodes(
             "name": "User Group",
             "description": "Group with access to harmonized system codes",
             "model": "auth.group",
-        }
+        },
+        "COUNTRY_LIST": {
+            "name": "Country List",
+            "description": "Selection list of country codes",
+            "model": "common.selectionlist",
+            "model_filters": {
+                "active": True,
+            },
+        },
     }
+
+    def get_country_list(self):
+        """Return the SelectionList instance for determining country codes."""
+
+        if country_list_id := self.get_setting("COUNTRY_LIST", backup_value=None):
+            from common.models import SelectionList
+
+            try:
+                return SelectionList.objects.get(id=country_list_id)
+            except SelectionList.DoesNotExist:
+                return None
+
+        return None
 
     # Respond to InvenTree events (from EventMixin)
     # Ref: https://docs.inventree.org/en/latest/plugins/mixins/event/
@@ -118,6 +139,10 @@ class HarmonizedSystemCodes(
             except (Company.DoesNotExist, ValueError):
                 return False
 
+        # Display for part categories
+        if target_model == "partcategory" and target_id:
+            return True
+
         # Default: do not display
         return False
 
@@ -138,7 +163,10 @@ class HarmonizedSystemCodes(
             except Group.DoesNotExist:
                 user_valid = False
 
-        if user_valid and self.display_codes_panel(request, context, **kwargs):
+        if not user_valid:
+            return []
+
+        if self.display_codes_panel(request, context, **kwargs):
             panels.append({
                 "key": "harmonized-system-codes-panel",
                 "title": "Harmonized Codes",
