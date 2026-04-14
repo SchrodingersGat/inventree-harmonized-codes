@@ -6,14 +6,22 @@ Ref: https://www.django-rest-framework.org/api-guide/serializers/
 """
 
 from company.serializers import CompanySerializer
+from InvenTree.mixins import DataImportExportSerializerMixin
 from InvenTree.serializers import InvenTreeModelSerializer
 from part.serializers import CategorySerializer
 
 from .models import HarmonizedSystemCode
 
 
-class HarmonizedSystemCodeSerializer(InvenTreeModelSerializer):
+class HarmonizedSystemCodeSerializer(
+    DataImportExportSerializerMixin, InvenTreeModelSerializer
+):
     """Serializer for the HarmonizedSystemCode model."""
+
+    export_child_fields = [
+        "customer_detail.name",
+        "category_detail.pathstring",
+    ]
 
     class Meta:
         """Meta options for the serializer."""

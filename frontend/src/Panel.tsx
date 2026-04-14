@@ -220,6 +220,7 @@ function HarmonizedSystemCodesPanel({
               in_category: categoryId || undefined,
               customer: companyId || undefined
             },
+            enableDownload: true,
             rowActions: rowActions,
             tableFilters: tableFilters,
             tableActions: tableActions

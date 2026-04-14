@@ -9,6 +9,7 @@ from django_filters.rest_framework.filterset import FilterSet
 
 import part.models as part_models
 
+from data_exporter.mixins import DataExportViewMixin
 from InvenTree.filters import SEARCH_ORDER_FILTER
 from InvenTree.mixins import ListCreateAPI, RetrieveUpdateDestroyAPI
 from InvenTree.permissions import RolePermission
@@ -37,6 +38,7 @@ class HarmonizedSystemCodeFilter(FilterSet):
         model = HarmonizedSystemCode
         fields = [
             "category",
+            "country",
             "customer",
             "active",
         ]
@@ -59,16 +61,20 @@ class HarmonizedSystemCodeFilter(FilterSet):
         )
 
 
-class HarmonizedSystemCodeList(HarominzedSystemCodeMixin, ListCreateAPI):
+class HarmonizedSystemCodeList(
+    HarominzedSystemCodeMixin, DataExportViewMixin, ListCreateAPI
+):
     """API endpoint for listing or creating Harmonized System Codes."""
 
     filter_backends = SEARCH_ORDER_FILTER
     filterset_class = HarmonizedSystemCodeFilter
 
-    ordering_fields = ["active", "code", "category", "customer"]
+    ordering_fields = ["active", "code", "category", "country", "customer"]
 
     search_fields = [
         "code",
+        "description",
+        "country",
         "category__name",
         "category__description",
         "customer__name",
