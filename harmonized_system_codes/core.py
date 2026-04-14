@@ -40,8 +40,7 @@ class HarmonizedSystemCodes(
     LICENSE = "MIT"
 
     # Optionally specify supported InvenTree versions
-    # MIN_VERSION = '0.18.0'
-    # MAX_VERSION = '2.0.0'
+    MIN_VERSION = "1.3.1"
 
     # Plugin settings (from SettingsMixin)
     # Ref: https://docs.inventree.org/en/latest/plugins/mixins/settings/
