@@ -1,6 +1,8 @@
 // Import for type checking
 import {
+  ActionButton,
   AddItemButton,
+  ApiEndpoints,
   type ApiFormFieldSet,
   apiUrl,
   checkPluginVersion,
@@ -17,7 +19,7 @@ import {
 } from '@inventreedb/ui';
 import { t } from '@lingui/core/macro';
 import { Alert, Stack, Text } from '@mantine/core';
-import { IconInfoCircle } from '@tabler/icons-react';
+import { IconFileUpload, IconInfoCircle } from '@tabler/icons-react';
 import { useCallback, useMemo, useState } from 'react';
 import { LocalizedComponent } from './locale';
 
@@ -108,6 +110,29 @@ function HarmonizedSystemCodesPanel({
     table: tableState
   });
 
+  // Form to import HS codes from a file
+  const importCodesForm = context.forms.create({
+    url: apiUrl(ApiEndpoints.import_session_list),
+    title: t`Import Harmonized Codes`,
+    fields: {
+      data_file: {},
+      model_type: {
+        value: 'harmonizedsystemcode',
+        hidden: true
+      },
+      update_records: {}
+    },
+    onFormSuccess: (response: any) => {
+      const sessionId = response.pk;
+
+      context.importer?.open?.(sessionId, {
+        onClose: () => {
+          tableState.refreshTable();
+        }
+      });
+    }
+  });
+
   const tableFilters: TableFilter[] = [
     {
       name: 'active',
@@ -182,6 +207,14 @@ function HarmonizedSystemCodesPanel({
 
   const tableActions = useMemo(() => {
     return [
+      <ActionButton
+        tooltip='Import from file'
+        tooltipAlignment='top-start'
+        onClick={() => {
+          importCodesForm.open();
+        }}
+        icon={<IconFileUpload />}
+      />,
       <AddItemButton
         tooltip={t`Add new harmonized code`}
         onClick={() => {
@@ -194,6 +227,7 @@ function HarmonizedSystemCodesPanel({
 
   return (
     <>
+      {importCodesForm.modal}
       {createCodeForm.modal}
       {deleteCodeForm.modal}
       {editCodeForm.modal}
