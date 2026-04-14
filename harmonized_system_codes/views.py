@@ -65,7 +65,7 @@ class HarmonizedSystemCodeList(HarominzedSystemCodeMixin, ListCreateAPI):
     filter_backends = SEARCH_ORDER_FILTER
     filterset_class = HarmonizedSystemCodeFilter
 
-    ordering_fields = ["code", "category", "customer"]
+    ordering_fields = ["active", "code", "category", "customer"]
 
     search_fields = [
         "code",

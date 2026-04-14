@@ -6,6 +6,15 @@
 
 An [InvenTree](https://inventree.org) plugin to support [harmonized system codes](https://en.wikipedia.org/wiki/Harmonized_System) (HS codes) against sales orders and shipments.
 
+## Compatibility
+
+The following table outlines the compatibility of this plugin with different versions of InvenTree:
+
+| Plugin Version | InvenTree Version |
+|----------------|-------------------|
+| >= 1.0.0       | >= 1.3.1          |
+| < 1.0.0        | >= 1.0.0         |
+
 ## Installation
 
 ### InvenTree Plugin Manager

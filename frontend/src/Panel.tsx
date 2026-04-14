@@ -5,19 +5,19 @@ import {
   apiUrl,
   checkPluginVersion,
   type InvenTreePluginContext,
+  InvenTreeTable,
   ModelType,
-  RowActions,
   RowDeleteAction,
   RowDuplicateAction,
   RowEditAction,
-  SearchInput,
+  type TableColumn,
+  type TableFilter,
+  useTable,
   YesNoButton
 } from '@inventreedb/ui';
 import { t } from '@lingui/core/macro';
-import { ActionIcon, Alert, Group, Stack, Text, Tooltip } from '@mantine/core';
-import { IconInfoCircle, IconRefresh } from '@tabler/icons-react';
-import { useQuery } from '@tanstack/react-query';
-import { DataTable } from 'mantine-datatable';
+import { Alert, Stack, Text } from '@mantine/core';
+import { IconInfoCircle } from '@tabler/icons-react';
 import { useCallback, useMemo, useState } from 'react';
 import { LocalizedComponent } from './locale';
 
@@ -49,33 +49,20 @@ function HarmonizedSystemCodesPanel({
 
   const CODE_URL: string = '/plugin/harmonized-system-codes/';
 
-  const [searchTerm, setSearchTerm] = useState<string>('');
-
-  const codesQuery = useQuery(
-    {
-      queryKey: ['hsCodes', searchTerm, categoryId, companyId],
-      queryFn: async () => {
-        return (
-          context.api
-            ?.get(CODE_URL, {
-              params: {
-                in_category: categoryId || undefined,
-                customer: companyId || undefined,
-                search: searchTerm
-              }
-            })
-            .then((response) => response.data) || []
-        );
-      }
-    },
-    context.queryClient
-  );
-
   // Record which is selected in the table
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
   // Initial form data for creating a new code
   const [initialCodeData, setInitialCodeData] = useState<any>({});
+
+  const tableState = useTable('hs-codes', {
+    initialFilters: [
+      {
+        name: 'active',
+        value: 'true'
+      }
+    ]
+  });
 
   // Form fields for the codes
   const codeFields: ApiFormFieldSet = useMemo(() => {
@@ -103,7 +90,7 @@ function HarmonizedSystemCodesPanel({
     title: t`Create Harmonized Code`,
     fields: codeFields,
     initialData: initialCodeData,
-    onFormSuccess: codesQuery.refetch
+    table: tableState
   });
 
   // Form to edit an existing HS code
@@ -111,15 +98,23 @@ function HarmonizedSystemCodesPanel({
     url: apiUrl(CODE_URL, selectedRecord?.pk),
     title: t`Edit Harmonized Code`,
     fields: codeFields,
-    onFormSuccess: codesQuery.refetch
+    table: tableState
   });
 
   // Form to delete an existing HS code
   const deleteCodeForm = context.forms.delete({
     url: apiUrl(CODE_URL, selectedRecord?.pk),
     title: t`Delete Harmonized Code`,
-    onFormSuccess: codesQuery.refetch
+    table: tableState
   });
+
+  const tableFilters: TableFilter[] = [
+    {
+      name: 'active',
+      label: t`Active`,
+      description: t`Show active harmonized system codes`
+    }
+  ];
 
   // Row actions
   const rowActions = useCallback((record: any) => {
@@ -145,42 +140,55 @@ function HarmonizedSystemCodesPanel({
     ];
   }, []);
 
-  const tableColumns: any = useMemo(() => {
+  const tableColumns: TableColumn[] = useMemo(() => {
     return [
       {
-        accessor: 'code'
+        accessor: 'code',
+        switchable: false,
+        sortable: true
       },
       {
         accessor: 'description'
       },
       {
         accessor: 'category',
+        sortable: true,
+        switchable: false,
         render: (record: any) => record.category_detail?.name ?? '-'
       },
       {
-        accessor: 'country'
+        accessor: 'country',
+        sortable: true,
+        switchable: false
       },
       {
         accessor: 'customer',
+        switchable: false,
+        sortable: true,
         render: (record: any) => record.customer_detail?.name ?? '-'
       },
       {
-        accessor: 'notes'
-      },
-      {
-        accessor: '---',
-        title: ' ',
-        width: 50,
-        resizable: false,
-        sortable: false,
-        render: (record: any, index: number) => (
-          <RowActions actions={rowActions(record)} index={index} />
-        )
+        accessor: 'notes',
+        sortable: false
       },
       {
         accessor: 'active',
+        sortable: true,
+        switchable: true,
         render: (record: any) => <YesNoButton value={record.active} />
       }
+    ];
+  }, []);
+
+  const tableActions = useMemo(() => {
+    return [
+      <AddItemButton
+        tooltip={t`Add new harmonized code`}
+        onClick={() => {
+          setInitialCodeData({});
+          createCodeForm.open();
+        }}
+      />
     ];
   }, []);
 
@@ -202,44 +210,21 @@ function HarmonizedSystemCodesPanel({
             </Stack>
           </Alert>
         )}
-        <Group justify='space-between'>
-          <Group gap='xs'>
-            <AddItemButton
-              tooltip={t`Add new harmonized code`}
-              onClick={() => {
-                setInitialCodeData({});
-                createCodeForm.open();
-              }}
-            />
-          </Group>
-          <Group gap='xs'>
-            <SearchInput
-              searchCallback={(value: string) => {
-                setSearchTerm(value);
-              }}
-            />
-            <Tooltip label='Refresh data' position='top-end'>
-              <ActionIcon
-                variant='transparent'
-                onClick={() => {
-                  codesQuery.refetch();
-                }}
-              >
-                <IconRefresh />
-              </ActionIcon>
-            </Tooltip>
-          </Group>
-        </Group>
-        <DataTable
-          minHeight={250}
-          withTableBorder
-          withColumnBorders
-          idAccessor='pk'
-          noRecordsText={t`No Harmonized System Codes found`}
-          fetching={codesQuery.isFetching || codesQuery.isLoading}
+
+        <InvenTreeTable
+          url={CODE_URL}
+          tableState={tableState}
           columns={tableColumns}
-          records={codesQuery.data || []}
-          pinLastColumn
+          props={{
+            params: {
+              in_category: categoryId || undefined,
+              customer: companyId || undefined
+            },
+            rowActions: rowActions,
+            tableFilters: tableFilters,
+            tableActions: tableActions
+          }}
+          context={context}
         />
       </Stack>
     </>
