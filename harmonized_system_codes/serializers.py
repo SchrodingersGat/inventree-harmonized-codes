@@ -6,6 +6,7 @@ Ref: https://www.django-rest-framework.org/api-guide/serializers/
 """
 
 from company.serializers import CompanySerializer
+from importer.registry import register_importer
 from InvenTree.mixins import DataImportExportSerializerMixin
 from InvenTree.serializers import InvenTreeModelSerializer
 from part.serializers import CategorySerializer
@@ -13,6 +14,7 @@ from part.serializers import CategorySerializer
 from .models import HarmonizedSystemCode
 
 
+@register_importer()
 class HarmonizedSystemCodeSerializer(
     DataImportExportSerializerMixin, InvenTreeModelSerializer
 ):
