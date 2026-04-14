@@ -11,6 +11,7 @@ import {
   RowDuplicateAction,
   RowEditAction,
   type TableColumn,
+  type TableFilter,
   useTable,
   YesNoButton
 } from '@inventreedb/ui';
@@ -151,6 +152,7 @@ function HarmonizedSystemCodesPanel({
       },
       {
         accessor: 'category',
+        sortable: true,
         switchable: false,
         render: (record: any) => record.category_detail?.name ?? '-'
       },
