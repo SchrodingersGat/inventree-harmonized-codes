@@ -7,6 +7,7 @@ This file is where you can define any custom database models.
 """
 
 from django.db import models
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -23,6 +24,43 @@ class HarmonizedSystemCode(models.Model):
         app_label = "harmonized_system_codes"
         verbose_name = _("Harmonized System Code")
         verbose_name_plural = _("Harmonized System Codes")
+
+    @classmethod
+    def check_user_permission(cls, user, permission) -> bool:
+        """Custom permission check for Harmonized System Codes.
+
+        This method can be used to implement custom permission logic for this model.
+        For example, you might want to restrict access based on user groups, or other criteria.
+
+        Arguments:
+            user: The user for whom the permission check is being performed
+            permission: The type of permission being checked (e.g. 'view', 'add', 'change', 'delete')
+        """
+
+        from plugin.registry import registry
+        from . import PLUGIN_SLUG
+
+        plugin = registry.get_plugin(PLUGIN_SLUG)
+
+        if not plugin:
+            raise ValidationError(
+                _("Harmonized System Codes plugin not found in registry.")
+            )
+
+        group_id = plugin.get_setting("USER_GROUP")
+
+        try:
+            group = Group.objects.get(id=group_id) if group_id else None
+        except (ValueError, Group.DoesNotExist):
+            # Group does not exist, allow access to any user
+            return True
+
+        if not group:
+            # Group does not exist, allow access to any user
+            return True
+
+        # Check if the user belongs to the specified group
+        return group in user.groups.all()
 
     def save(self, *args, **kwargs):
         """Custom save method to enforce any constraints or perform actions before saving."""
